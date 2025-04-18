@@ -4,15 +4,19 @@ import (
 	"log"
 	"net/http"
 	"org/jingtao8a/gee/engine"
-	"org/jingtao8a/gee/logger"
+	"org/jingtao8a/gee/middleware"
 	"org/jingtao8a/gee/router"
 )
 
 func main() {
 	engine := engine.NewEngine()
-	engine.Use(logger.Logger())
+	engine.Use(middleware.Recovery())
+	engine.Use(middleware.Logger())
 	engine.GET("/", func(ctx *router.Context) {
 		ctx.String(http.StatusOK, "hello world")
+	})
+	engine.GET("/panic", func(ctx *router.Context) {
+		panic("panic")
 	})
 	v1 := engine.Group("/v1")
 	{
