@@ -43,6 +43,9 @@ func (n *Node) Search(parts []string, height int) *Node {
 	if (n.Pattern != "" && len(parts) == height) || len(n.Part) > 0 && n.Part[0] == '*' {
 		return n
 	}
+	if height >= len(parts) {
+		return nil
+	}
 	part := parts[height]
 	list := n.matchChildren(part)
 

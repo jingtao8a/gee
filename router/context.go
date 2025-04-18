@@ -1,4 +1,4 @@
-package context
+package router
 
 import (
 	"encoding/json"
@@ -17,6 +17,9 @@ type Context struct {
 	Params map[string]string
 	// response info
 	StatusCode int
+	// middleware
+	Handlers []HandlerFunc
+	index    int
 }
 
 func NewContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -26,7 +29,21 @@ func NewContext(w http.ResponseWriter, req *http.Request) *Context {
 		Path:   req.URL.Path,
 		Method: req.Method,
 		Params: make(map[string]string),
+		index:  -1,
 	}
+}
+
+func (ctx *Context) Next() {
+	ctx.index++
+	s := len(ctx.Handlers)
+	for ; ctx.index < s; ctx.index++ {
+		ctx.Handlers[ctx.index](ctx)
+	}
+}
+
+func (ctx *Context) Fail(code int, err string) {
+	ctx.index = len(ctx.Handlers)
+	ctx.JSON(code, map[string]string{"message": err})
 }
 
 // 查询请求表单中key对应的value

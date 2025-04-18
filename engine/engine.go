@@ -3,8 +3,8 @@ package engine
 import (
 	"log"
 	"net/http"
+	"strings"
 
-	"org/jingtao8a/gee/context"
 	"org/jingtao8a/gee/router"
 )
 
@@ -39,6 +39,10 @@ func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	return newGroup
 }
 
+func (group *RouterGroup) Use(middlewares ...router.HandlerFunc) {
+	group.middlewares = append(group.middlewares, middlewares...)
+}
+
 func (group *RouterGroup) addRoute(method string, pattern string, handler router.HandlerFunc) {
 	pattern = group.prefix + pattern
 	log.Printf("Route %4s - %s", method, pattern)
@@ -54,7 +58,14 @@ func (group *RouterGroup) POST(pattern string, handler router.HandlerFunc) {
 }
 
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := context.NewContext(w, r)
+	var middlewares []router.HandlerFunc
+	for _, group := range engine.groups {
+		if strings.HasPrefix(r.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
+	ctx := router.NewContext(w, r)
+	ctx.Handlers = middlewares
 	engine.router.Handle(ctx)
 }
 

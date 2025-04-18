@@ -2,13 +2,12 @@ package router
 
 import (
 	"net/http"
-	"org/jingtao8a/gee/context"
 	"org/jingtao8a/gee/tire"
 	"org/jingtao8a/gee/util"
 	"strings"
 )
 
-type HandlerFunc func(ctx *context.Context)
+type HandlerFunc func(ctx *Context)
 
 type Router struct {
 	handlers map[string]HandlerFunc
@@ -59,13 +58,14 @@ func (r *Router) GetRoute(method string, pattern string) (*tire.Node, map[string
 	return n, params
 }
 
-func (r *Router) Handle(ctx *context.Context) {
+func (r *Router) Handle(ctx *Context) {
 	n, params := r.GetRoute(ctx.Method, ctx.Path)
 	if n != nil {
 		ctx.Params = params
 		key := ctx.Method + "-" + n.Pattern
-		r.handlers[key](ctx)
+		ctx.Handlers = append(ctx.Handlers, r.handlers[key])
 	} else {
-		ctx.String(http.StatusNotFound, "404 not found %s", ctx.Path)
+		ctx.Handlers = append(ctx.Handlers, func(ctx *Context) { ctx.String(http.StatusNotFound, "404 not found %s", ctx.Path) })
 	}
+	ctx.Next()
 }
