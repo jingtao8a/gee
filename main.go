@@ -12,17 +12,23 @@ func main() {
 	engine.GET("/", func(ctx *context.Context) {
 		ctx.String(http.StatusOK, "hello world")
 	})
-	engine.GET("/test", func(ctx *context.Context) {
-		ctx.String(http.StatusOK, "this is test")
-	})
-	engine.GET("/hello/:name", func(ctx *context.Context) {
-		ctx.String(http.StatusOK, "hello world %s", ctx.Params["name"])
-	})
-	engine.GET("/assets/*filepath", func(ctx *context.Context) {
-		ctx.JSON(http.StatusOK, ctx.Params["filepath"])
-	})
-	engine.GET("/assets/:name/*filepath", func(ctx *context.Context) {
-		ctx.JSON(http.StatusOK, ctx.Params)
-	})
+	v1 := engine.Group("/v1")
+	{
+		v1.GET("/test", func(ctx *context.Context) {
+			ctx.String(http.StatusOK, "this is test")
+		})
+		v1.GET("/hello/:name", func(ctx *context.Context) {
+			ctx.String(http.StatusOK, "hello world %s", ctx.Params["name"])
+		})
+	}
+	v2 := engine.Group("/v2")
+	{
+		v2.GET("/assets/*filepath", func(ctx *context.Context) {
+			ctx.JSON(http.StatusOK, ctx.Params["filepath"])
+		})
+		v2.GET("/assets/:name/*filepath", func(ctx *context.Context) {
+			ctx.JSON(http.StatusOK, ctx.Params)
+		})
+	}
 	log.Fatal(engine.Run(":9999"))
 }
