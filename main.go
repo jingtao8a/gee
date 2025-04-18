@@ -7,13 +7,22 @@ import (
 	"org/jingtao8a/gee/engine"
 )
 
-func indexRoute(ctx *context.Context) {
-	//ctx.String(http.StatusOK, "%s", "yuxintao")
-	ctx.JSON(http.StatusOK, map[string]int{"age": 24, "weight": 78})
-}
-
 func main() {
 	engine := engine.NewEngine()
-	engine.GET("/", indexRoute)
+	engine.GET("/", func(ctx *context.Context) {
+		ctx.String(http.StatusOK, "hello world")
+	})
+	engine.GET("/test", func(ctx *context.Context) {
+		ctx.String(http.StatusOK, "this is test")
+	})
+	engine.GET("/hello/:name", func(ctx *context.Context) {
+		ctx.String(http.StatusOK, "hello world %s", ctx.Params["name"])
+	})
+	engine.GET("/assets/*filepath", func(ctx *context.Context) {
+		ctx.JSON(http.StatusOK, ctx.Params["filepath"])
+	})
+	engine.GET("/assets/:name/*filepath", func(ctx *context.Context) {
+		ctx.JSON(http.StatusOK, ctx.Params)
+	})
 	log.Fatal(engine.Run(":9999"))
 }
